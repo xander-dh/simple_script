@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>问题与答案匹配器</title>
+</head>
+<body>
+    <input type="file" id="fileInput" accept=".txt">
+    <input type="text" id="inputField" placeholder="输入问题关键词">
+    <div id="result"></div>
+
+    <script>
+        const inputField = document.getElementById('inputField');
+        const resultDiv = document.getElementById('result');
+        let data;
+        inputField.addEventListener('input', handleInput);
+
+        function handleInput() {
+            const inputValue = this.value.trim();
+            if (inputValue === '') {
+                resultDiv.innerHTML = ''; // 清空结果显示
+                return;
+            }
+
+            const matchingResults = data.filter(item => {
+                const question = item.question.split(':')[1].trim(); // 提取问题关键词
+                return question.startsWith(inputValue);
+            });
+
+            if (matchingResults.length > 0) {
+                const resultHTML = matchingResults.map(item => {
+                    const question = item.question.split(':')[1].split('-')[1].trim(); // 提取问题关键词
+                    const answer = item.answer.split(':')[1].trim(); // 提取答案内容
+                    return `<div><strong>${question}</strong>: </div><div><span style="color: red;">${answer}</span></div>`;
+                }).join('');
+                resultDiv.innerHTML = resultHTML; // 显示匹配到的问题和答案
+            } else {
+                resultDiv.innerHTML = '<div>未找到匹配问题</div>'; // 显示未找到匹配的问题提示
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const fileContent = event.target.result;
+                processData(fileContent);
+            };
+
+            reader.readAsText(file);
+        });
+
+        function processData(fileContent) {
+            const lines = fileContent.split('\n');
+            data = lines.map(line => {
+                const [question, answer] = line.split('|');
+                return { question, answer };
+            });
+        }
+    </script>
+</body>
+</html>
